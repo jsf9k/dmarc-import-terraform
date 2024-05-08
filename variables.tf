@@ -61,9 +61,9 @@ variable "temporary_bucket_name" {
 # ------------------------------------------------------------------------------
 
 variable "aws_region" {
-  type        = string
-  description = "The AWS region to deploy into (e.g. us-east-1)."
   default     = "us-east-1"
+  description = "The AWS region to deploy into (e.g. us-east-1)."
+  type        = string
 }
 
 variable "cognito_authenticated_role_name" {
