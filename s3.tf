@@ -30,28 +30,24 @@ resource "aws_s3_bucket" "temporary" {
 # dmarc-import bucket.
 data "aws_iam_policy_document" "ses_permanent_s3_doc" {
   statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["ses.amazonaws.com"]
-    }
-
     actions = [
       "s3:PutObject",
     ]
-
-    resources = [
-      "${aws_s3_bucket.permanent.arn}/*",
-    ]
-
     condition {
-      test     = "StringEquals"
-      variable = "aws:Referer"
+      test = "StringEquals"
       values = [
         data.aws_caller_identity.current.account_id,
       ]
+      variable = "aws:Referer"
     }
+    effect = "Allow"
+    principals {
+      identifiers = ["ses.amazonaws.com"]
+      type        = "Service"
+    }
+    resources = [
+      "${aws_s3_bucket.permanent.arn}/*",
+    ]
   }
 }
 
@@ -65,28 +61,24 @@ resource "aws_s3_bucket_policy" "permanent_policy" {
 # temporary dmarc-import bucket.
 data "aws_iam_policy_document" "ses_temporary_s3_doc" {
   statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["ses.amazonaws.com"]
-    }
-
     actions = [
       "s3:PutObject",
     ]
-
-    resources = [
-      "${aws_s3_bucket.temporary.arn}/*",
-    ]
-
     condition {
-      test     = "StringEquals"
-      variable = "aws:Referer"
+      test = "StringEquals"
       values = [
         data.aws_caller_identity.current.account_id,
       ]
+      variable = "aws:Referer"
     }
+    effect = "Allow"
+    principals {
+      identifiers = ["ses.amazonaws.com"]
+      type        = "Service"
+    }
+    resources = [
+      "${aws_s3_bucket.temporary.arn}/*",
+    ]
   }
 }
 
@@ -102,7 +94,7 @@ resource "aws_s3_bucket_notification" "notification" {
   bucket = aws_s3_bucket.temporary.id
 
   queue {
-    queue_arn = aws_sqs_queue.dmarc_reports.arn
     events    = ["s3:ObjectCreated:*"]
+    queue_arn = aws_sqs_queue.dmarc_reports.arn
   }
 }

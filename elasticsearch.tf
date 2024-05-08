@@ -7,18 +7,15 @@ resource "aws_cloudwatch_log_group" "es_logs" {
 # IAM policy document that that allows ES to write to CloudWatch logs
 data "aws_iam_policy_document" "es_cloudwatch_doc" {
   statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["es.amazonaws.com"]
-    }
-
     actions = [
       "logs:PutLogEvents",
       "logs:CreateLogStream",
     ]
-
+    effect = "Allow"
+    principals {
+      identifiers = ["es.amazonaws.com"]
+      type        = "Service"
+    }
     resources = [
       aws_cloudwatch_log_group.es_logs.arn,
       "${aws_cloudwatch_log_group.es_logs.arn}:*",
@@ -35,19 +32,16 @@ resource "aws_cloudwatch_log_resource_policy" "es_cloudwatch_policy" {
 # Elasticsearch domain
 data "aws_iam_policy_document" "es_cognito_auth" {
   statement {
-    effect = "Allow"
-
     actions = [
       "es:*",
     ]
-
+    effect = "Allow"
     principals {
-      type = "AWS"
       identifiers = [
         aws_iam_role.cognito_authenticated.arn,
       ]
+      type = "AWS"
     }
-
     resources = [
       "arn:aws:es:${var.aws_region}:*:domain/${var.elasticsearch_domain_name}/*",
     ]
@@ -78,8 +72,8 @@ resource "aws_elasticsearch_domain" "es" {
 
   ebs_options {
     ebs_enabled = true
-    volume_type = "gp2"
     volume_size = 100
+    volume_type = "gp2"
   }
 
   encrypt_at_rest {

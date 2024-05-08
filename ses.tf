@@ -7,12 +7,11 @@ resource "aws_ses_receipt_rule_set" "rules" {
 # Make a rule for handling the DMARC aggregate report emails that
 # arrive
 resource "aws_ses_receipt_rule" "rule" {
+  enabled       = true
   name          = "receive-dmarc-emails"
-  rule_set_name = aws_ses_receipt_rule_set.rules.rule_set_name
   recipients    = var.emails
-
-  enabled      = true
-  scan_enabled = true
+  rule_set_name = aws_ses_receipt_rule_set.rules.rule_set_name
+  scan_enabled  = true
 
   # Save to the permanent S3 bucket
   s3_action {
