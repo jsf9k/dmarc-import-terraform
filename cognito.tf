@@ -4,11 +4,11 @@
 resource "aws_cognito_user" "dmarc" {
   for_each = { for k, v in var.cognito_usernames : k => v }
 
-  user_pool_id = aws_cognito_user_pool.dmarc.id
-  username     = each.key
   attributes = {
     email = each.value["email"]
   }
+  user_pool_id = aws_cognito_user_pool.dmarc.id
+  username     = each.key
 }
 
 # The Cognito user pool
@@ -86,42 +86,36 @@ resource "aws_cognito_identity_pool" "dmarc" {
 # The Cognito identity pool role and related policies
 data "aws_iam_policy_document" "cognito_authenticated" {
   statement {
-    effect = "Allow"
-
     actions = ["sts:AssumeRoleWithWebIdentity"]
-
-    principals {
-      type        = "Federated"
-      identifiers = ["cognito-identity.amazonaws.com"]
-    }
-
     condition {
       test     = "StringEquals"
-      variable = "cognito-identity.amazonaws.com:aud"
       values   = [aws_cognito_identity_pool.dmarc.id]
+      variable = "cognito-identity.amazonaws.com:aud"
     }
-
     condition {
       test     = "ForAnyValue:StringLike"
-      variable = "cognito-identity.amazonaws.com:amr"
       values   = ["authenticated"]
+      variable = "cognito-identity.amazonaws.com:amr"
+    }
+    effect = "Allow"
+    principals {
+      identifiers = ["cognito-identity.amazonaws.com"]
+      type        = "Federated"
     }
   }
 }
 
 resource "aws_iam_role" "cognito_authenticated" {
-  name               = var.cognito_authenticated_role_name
   assume_role_policy = data.aws_iam_policy_document.cognito_authenticated.json
+  name               = var.cognito_authenticated_role_name
 }
 
 data "aws_iam_policy_document" "cognito_authenticated_role_policy" {
   statement {
-    effect = "Allow"
-
     actions = [
       "cognito-identity:GetCredentialsForIdentity",
     ]
-
+    effect    = "Allow"
     resources = ["*"]
   }
 }
@@ -159,10 +153,8 @@ resource "aws_cognito_identity_pool_roles_attachment" "dmarc" {
 # OpenSearch Dashboards/Kibana authentication
 data "aws_iam_policy_document" "opensearch_cognito_trust" {
   statement {
-    effect = "Allow"
-
     actions = ["sts:AssumeRole"]
-
+    effect  = "Allow"
     principals {
       identifiers = ["es.amazonaws.com"]
       type        = "Service"
